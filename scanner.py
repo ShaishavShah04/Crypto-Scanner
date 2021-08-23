@@ -21,8 +21,19 @@ def get_tickers(data, base = "BUSD" ):
 def explosive_volume(df_volume):
     return df_volume.iloc[-1] > ( df_volume.iloc[-2] * 2 )
 
-def price_level(df, symbol):
-    ticker_info = exchange.fetch_tickers(symbol)[symbol]
+def bullish_engulfing(df, ticker_info):
+    # Last High / Open
+    openPrice = df.iloc[-2]["open"]
+    closePrice = df.iloc[-2]["close"]
+    # Checking if last day was down
+    if (closePrice < openPrice):
+        price = ( ticker_info["ask"] + ticker_info["bid"] ) / 2
+        if  price > openPrice:
+            return True
+    return False
+
+def price_level(df, ticker_info):
+    
     # Last High / Open
     openPrice = df.iloc[-2]["open"]
     closePrice = df.iloc[-2]["close"]
@@ -46,10 +57,18 @@ def generate_bullish():
     data = exchange.load_markets()
     symbols = get_tickers(data)
     filtered = []
+
     for symbol in symbols:
         print(f"Testing {symbol}...")
         df = pd.DataFrame( exchange.fetch_ohlcv(symbol,"1d", limit=3), columns = ["time", "open", "high", "low", "close", "volume"] )
-        if explosive_volume(df["volume"]) and price_level(df, symbol) == "Up":
+        ticker_info = exchange.fetch_tickers(symbol)[symbol]
+        # Criteria
+        upward_trend = (price_level(df, ticker_info) == "Up") and explosive_volume(df["volume"])
+        bullish_engulfing_check = bullish_engulfing(df, ticker_info)
+
+        if upward_trend or bullish_engulfing_check:
             filtered.append(symbol)
     
     print(filtered)
+
+generate_bullish()
