@@ -1,20 +1,10 @@
 """
-Cypto Scanner
--- Hoping to catch all those midnight 200% surges
+Functions File
 Made by: Shaishav Shah
 """
-import ccxt, json
-from pprint import pprint as pp
-import ta
-import pandas as pd
 
-exchange = ccxt.binance({
-    'enableRateLimit': True,
-})
-
-def get_tickers(base = "BUSD"):
+def get_tickers(market, base = "BUSD"):
     busd = []
-    market = exchange.fetch_markets()
     # Getting all symbols
     for info in market:
         if info.get("quote") == base:
@@ -26,14 +16,7 @@ def explosive_volume(df_volume):
     return df_volume.iloc[-1] > ( df_volume.iloc[-2] * 2 )
 
 
-def bullish_engulfing(df, ticker_info):
-    # Last High / Open
-    try:
-        openPrice = df.iloc[-2]["open"]
-        closePrice = df.iloc[-2]["close"]
-    except IndexError:
-        print("-- Not enough data. Probably a new listing!")
-        return False
+def bullish_engulfing(ticker_info, openPrice, closePrice):
     # Checking if last day was down
     if (closePrice < openPrice):
         price = ( ticker_info["ask"] + ticker_info["bid"] ) / 2
@@ -41,16 +24,16 @@ def bullish_engulfing(df, ticker_info):
             return True
     return False
 
-def price_level(df, ticker_info):
-    
-    # Last High / Open
-    try:
-        openPrice = df.iloc[-2]["open"]
-        closePrice = df.iloc[-2]["close"]
-    except IndexError:
-        print("-- Not enough data. Probably a new listing!")
-        return False
-    # 
+def bearish_engulfing(ticker_info, openPrice, closePrice):
+    # Checking if last day was up
+    if (closePrice > openPrice):
+        price = ( ticker_info["ask"] + ticker_info["bid"] ) / 2
+        if  price < openPrice:
+            return True
+    return False
+
+
+def price_level(ticker_info, openPrice, closePrice):
     if closePrice > openPrice:
         previous_timeframe_peak = closePrice
         previous_timeframe_low = openPrice
@@ -66,25 +49,23 @@ def price_level(df, ticker_info):
         return "Down"
     return price > previous_timeframe_peak
 
-def generate_bullish():
-    symbols = get_tickers()
-    filtered = []
-    all_tickers = exchange.fetch_tickers()
 
-    for symbol in symbols:
-        print(f"Testing {symbol}...")
-        # Fetching Data
-        df = pd.DataFrame( exchange.fetch_ohlcv(symbol,"15m", limit=3), columns = ["time", "open", "high", "low", "close", "volume"] )
-        ticker_info = all_tickers.get(symbol)
-        # Some Basic things we need
-
-        # Criteria
-        upward_trend = (price_level(df, ticker_info) == "Up") and explosive_volume(df["volume"])
-        bullish_engulfing_check = bullish_engulfing(df, ticker_info)
-
-        if upward_trend or bullish_engulfing_check:
-            filtered.append(symbol)
-    
-    print(filtered)
-
-generate_bullish()
+def analyze(ticker_info, df):
+    # Some Basic things we need
+        try:
+          openPrice = df.iloc[-2]["open"]
+          closePrice = df.iloc[-2]["close"]
+          # Criteria
+          price_up = (price_level(ticker_info, openPrice, closePrice) == "Up")
+          higher_volume = explosive_volume(df["volume"])
+          bullish_engulfing_check = bullish_engulfing(ticker_info, openPrice, closePrice)
+          bearish_engulfing_check = bearish_engulfing(ticker_info, openPrice, closePrice)
+        except IndexError:
+            print("-- Not enough data. Probably a new listing!")
+            return 0            
+        if higher_volume and (bullish_engulfing_check or price_up):
+            return 1
+        elif higher_volume and bearish_engulfing_check:
+            return -1
+        else:
+            return 0
