@@ -2,6 +2,8 @@
 Functions File
 Made by: Shaishav Shah
 """
+from datetime import datetime
+from os import name
 
 def get_tickers(market, base = "BUSD"):
     busd = []
@@ -13,7 +15,7 @@ def get_tickers(market, base = "BUSD"):
 
 
 def explosive_volume(df_volume):
-    return df_volume.iloc[-1] > ( df_volume.iloc[-2] * 2 )
+    return df_volume.iloc[-1] > ( df_volume.iloc[-2] * 1.5 )
 
 
 def bullish_engulfing(ticker_info, openPrice, closePrice):
@@ -60,6 +62,9 @@ def analyze(ticker_info, df):
           higher_volume = explosive_volume(df["volume"])
           bullish_engulfing_check = bullish_engulfing(ticker_info, openPrice, closePrice)
           bearish_engulfing_check = bearish_engulfing(ticker_info, openPrice, closePrice)
+          # 
+          print("-")
+          print("--- Price Up: {} -- H.V: {} -- Bull: {} -- Bear: {} ".format(price_up, higher_volume, bullish_engulfing_check, bearish_engulfing_check))
         except IndexError:
             print("-- Not enough data. Probably a new listing!")
             return 0            
@@ -69,3 +74,20 @@ def analyze(ticker_info, df):
             return -1
         else:
             return 0
+
+def write_file(set):
+    msg= ""
+    space = "\n\n"
+    border = "============================================"
+    time = datetime.now()
+    str_time = time.strftime("%Y-%m-%d @ %H-%M")
+    msg += space
+    msg += "{} - Cryto's to watch right now: ".format(str_time)
+    msg += space + border
+    for symbol in set:
+        msg += f"\n {symbol}"
+    msg += space + border + space
+
+    with open("results.txt", "a+") as fil:
+        fil.write(msg)
+

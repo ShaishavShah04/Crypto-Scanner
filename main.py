@@ -3,11 +3,11 @@ Cypto Scanner - Main File
 -- Hoping to catch all those midnight 200% surges
 Made by: Shaishav Shah
 """
-
 import ccxt
-from pprint import pprint as pp
 import scanner
 import pandas as pd
+import schedule
+from time import sleep
 
 # Exchange
 exchange = ccxt.binance({
@@ -35,9 +35,13 @@ def check_cypto_market(timeframe = "4h"):
             else:
                 crypto_to_watch.add(symbol)
         
-
-    print(crypto_to_watch)
-
+    scanner.write_file(crypto_to_watch)
 
 
-check_cypto_market()
+if __name__ == "__main__":
+
+    schedule.every(1).hour.do(check_cypto_market)
+
+    while True:
+        schedule.run_pending()
+        sleep(1)
