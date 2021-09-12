@@ -15,7 +15,10 @@ def get_tickers(market, base = "BUSD"):
 
 
 def explosive_volume(df_volume):
-    return df_volume.iloc[-1] > ( df_volume.iloc[-2] * 1.5 )
+    current_vol = df_volume.iloc[-1]
+    lastcandle_vol = df_volume.iloc[-2]
+    last_to_lastcandle_vol = df_volume.iloc[-3]
+    return ( current_vol > ( lastcandle_vol * 1.5 )) or ( current_vol > ( lastcandle_vol * 2))
 
 
 def bullish_engulfing(ticker_info, openPrice, closePrice):
@@ -63,8 +66,8 @@ def analyze(ticker_info, df):
           bullish_engulfing_check = bullish_engulfing(ticker_info, openPrice, closePrice)
           bearish_engulfing_check = bearish_engulfing(ticker_info, openPrice, closePrice)
           # 
-          print("-")
-          print("--- Price Up: {} -- H.V: {} -- Bull: {} -- Bear: {} ".format(price_up, higher_volume, bullish_engulfing_check, bearish_engulfing_check))
+        #   print("-")
+        #   print("--- Price Up: {} -- H.V: {} -- Bull: {} -- Bear: {} ".format(price_up, higher_volume, bullish_engulfing_check, bearish_engulfing_check))
         except IndexError:
             print("-- Not enough data. Probably a new listing!")
             return 0            

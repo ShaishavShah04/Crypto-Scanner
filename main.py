@@ -40,8 +40,10 @@ def check_cypto_market(timeframe = "4h"):
 
 if __name__ == "__main__":
 
-    schedule.every(1).hour.do(check_cypto_market)
+    check_cypto_market()
 
-    while True:
-        schedule.run_pending()
-        sleep(1)
+    # schedule.every(1).hour.do(check_cypto_market)
+
+    # while True:
+    #     schedule.run_pending()
+    #     sleep(1)
