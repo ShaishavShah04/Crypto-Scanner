@@ -78,19 +78,19 @@ def analyze(ticker_info, df):
         else:
             return 0
 
-def write_file(set):
-    msg= ""
-    space = "\n\n"
-    border = "============================================"
-    time = datetime.now()
-    str_time = time.strftime("%Y-%m-%d @ %H-%M")
-    msg += space
-    msg += "{} - Cryto's to watch right now: ".format(str_time)
-    msg += space + border
-    for symbol in set:
-        msg += f"\n {symbol}"
-    msg += space + border + space
-
+def write_file(msg):
+    msg += "\n\n"
     with open("results.txt", "a+") as fil:
         fil.write(msg)
+
+def create_string(set):
+    msg= ""
+    border = "==============="
+    time = datetime.now()
+    str_time = time.strftime("%Y-%m-%d @ %H-%M")
+    msg += "{} Report: ".format(str_time)
+    msg += border
+    for symbol in set:
+        msg += f"\n {symbol}"
+    return msg
 

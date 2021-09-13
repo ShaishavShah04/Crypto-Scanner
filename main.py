@@ -8,11 +8,16 @@ import scanner
 import pandas as pd
 import schedule
 from time import sleep
+import twilio_config
+from twilio.rest import Client
 
-# Exchange
+# Objects
 exchange = ccxt.binance({
     'enableRateLimit': True,
 })
+message_client = Client(twilio_config.ACCOUNT_SID, 
+                        twilio_config.AUTH_TOKEN)
+
 
 # Init Variables Needed
 def check_cypto_market(timeframe = "4h"):
@@ -23,7 +28,7 @@ def check_cypto_market(timeframe = "4h"):
     all_tickers = exchange.fetch_tickers()
 
     for symbol in symbols:
-        print(f"Testing {symbol}...")
+        # print(f"Testing {symbol}...")
         # Fetching Data
         df = pd.DataFrame( exchange.fetch_ohlcv(symbol,timeframe, limit=3), columns = ["time", "open", "high", "low", "close", "volume"] )
         ticker_info = all_tickers.get(symbol)
@@ -34,16 +39,24 @@ def check_cypto_market(timeframe = "4h"):
                 crypto_to_watch.discard(symbol)
             else:
                 crypto_to_watch.add(symbol)
-        
-    scanner.write_file(crypto_to_watch)
+    
+    message = scanner.create_string(crypto_to_watch)
+    scanner.write_file(message)
+    # Send SMS
+    message_client.messages.create(
+        to = twilio_config.TO,
+        from_= twilio_config.FROM,
+        body = message
+    )
+
 
 
 if __name__ == "__main__":
 
-    check_cypto_market()
+    # check_cypto_market()
 
-    # schedule.every(1).hour.do(check_cypto_market)
+    schedule.every(1).hour.do(check_cypto_market)
 
-    # while True:
-    #     schedule.run_pending()
-    #     sleep(1)
+    while True:
+        schedule.run_pending()
+        sleep(1)
