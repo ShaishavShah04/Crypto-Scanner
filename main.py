@@ -20,7 +20,7 @@ message_client = Client(twilio_config.ACCOUNT_SID,
 
 
 # Init Variables Needed
-def check_cypto_market(timeframe = "4h"):
+def check_cypto_market(timeframe = "1d"):
     crypto_to_watch = set()
     market = exchange.fetch_markets()
     symbols = scanner.get_tickers( market, base="BUSD" )
@@ -28,7 +28,7 @@ def check_cypto_market(timeframe = "4h"):
     all_tickers = exchange.fetch_tickers()
 
     for symbol in symbols:
-        # print(f"Testing {symbol}...")
+        print(f"Testing {symbol}...")
         # Fetching Data
         df = pd.DataFrame( exchange.fetch_ohlcv(symbol,timeframe, limit=3), columns = ["time", "open", "high", "low", "close", "volume"] )
         ticker_info = all_tickers.get(symbol)
@@ -36,18 +36,19 @@ def check_cypto_market(timeframe = "4h"):
         # Processing Singal
         if signal:
             if signal == -1:
-                crypto_to_watch.discard(symbol)
+                crypto_to_watch.discard(symbol) # This doesn't make a difference right now, but it will later once I keep a track of all cryptos to watch across scans.
             else:
                 crypto_to_watch.add(symbol)
+    
     
     message = scanner.create_string(crypto_to_watch)
     scanner.write_file(message)
     # Send SMS
-    message_client.messages.create(
-        to = twilio_config.TO,
-        from_= twilio_config.FROM,
-        body = message
-    )
+    # message_client.messages.create(
+    #     to = twilio_config.TO,
+    #     from_= twilio_config.FROM,
+    #     body = message
+    # )
 
 
 

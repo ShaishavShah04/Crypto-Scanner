@@ -3,3 +3,4 @@ env
 results.txt
 twilio_config.py
 /server-keys
+alerted_for_today.txt

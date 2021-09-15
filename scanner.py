@@ -3,7 +3,7 @@ Functions File
 Made by: Shaishav Shah
 """
 from datetime import datetime
-from os import name
+from os import name, path
 
 def get_tickers(market, base = "BUSD"):
     busd = []
@@ -66,8 +66,8 @@ def analyze(ticker_info, df):
           bullish_engulfing_check = bullish_engulfing(ticker_info, openPrice, closePrice)
           bearish_engulfing_check = bearish_engulfing(ticker_info, openPrice, closePrice)
           # 
-        #   print("-")
-        #   print("--- Price Up: {} -- H.V: {} -- Bull: {} -- Bear: {} ".format(price_up, higher_volume, bullish_engulfing_check, bearish_engulfing_check))
+          print("-")
+          print("--- Price Up: {} -- H.V: {} -- Bull: {} -- Bear: {} ".format(price_up, higher_volume, bullish_engulfing_check, bearish_engulfing_check))
         except IndexError:
             print("-- Not enough data. Probably a new listing!")
             return 0            
@@ -83,14 +83,31 @@ def write_file(msg):
     with open("results.txt", "a+") as fil:
         fil.write(msg)
 
+def whats_new(new_scans):
+    already_alerted = set()
+    # Creating file
+    if not path.exists('./alerted_for_today.txt'):
+        open("alerted_for_today.txt",'w+').close()
+    # Reading the existing alerts
+    with open('alerted_for_today.txt', 'r+') as file:
+        for line in file.readlines():
+            already_alerted.add(line.strip("\n"))
+    # Returning the differences
+    with open('alerted_for_today.txt','w') as file:
+        for symbol in new_scans:
+            file.write(symbol+"\n")
+    return new_scans.difference(already_alerted)
+
 def create_string(set):
     msg= ""
     border = "==============="
     time = datetime.now()
     str_time = time.strftime("%Y-%m-%d @ %H-%M")
-    msg += "{} Report: ".format(str_time)
+    msg += "\n{} Report: ".format(str_time)
     msg += border
     for symbol in set:
         msg += f"\n {symbol}"
     return msg
 
+if __name__ == "__main__":
+    print(whats_new({"A","B","C","D","E"}))
